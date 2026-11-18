@@ -1,55 +1,107 @@
-
 const tg = window.Telegram?.WebApp;
 
 if (tg) {
     tg.ready();
     tg.expand();
-    tg.setHeaderColor("#080d1c");
-    tg.setBackgroundColor("#080d1c");
+    tg.setHeaderColor("#080d19");
+    tg.setBackgroundColor("#080d19");
+
+    const user = tg.initDataUnsafe?.user;
+
+    if (user) {
+        document.getElementById("username").textContent =
+            user.first_name || "Пользователь";
+
+        document.getElementById("userId").textContent =
+            "Telegram ID: " + user.id;
+    }
 }
 
-let balance = 1000;
+let currentPage = "home";
+let previousPage = "home";
 
-function updateBalance() {
-    document.getElementById("balance").textContent = balance;
+function openPage(page) {
+    const target = document.getElementById(page);
+
+    if (!target) return;
+
+    previousPage = currentPage;
+    currentPage = page;
+
+    document.querySelectorAll(".page").forEach(element => {
+        element.classList.remove("active");
+    });
+
+    target.classList.add("active");
+
+    document.querySelectorAll(".nav-button").forEach(button => {
+        button.classList.remove("active");
+    });
+
+    if (["home", "games", "vip", "profile"].includes(page)) {
+        const index = {
+            home: 0,
+            games: 1,
+            vip: 2,
+            profile: 3
+        }[page];
+
+        document.querySelectorAll(".nav-button")[index]
+            .classList.add("active");
+    }
+
+    window.scrollTo(0, 0);
 }
 
-function openGame(game) {
-    document.querySelector(".games").style.display = "none";
-    document.querySelector("main > h2").style.display = "none";
-    document.querySelector(".banner").style.display = "none";
-
-    const screen = document.getElementById("game-screen");
-    const content = document.getElementById("game-content");
-
-    screen.style.display = "block";
-
-    const names = {
-        mines: "💣 Мины",
-        upgrade: "🎡 Апгрейд",
-        blackjack: "🃏 Блэкджек",
-        demo: "🎯 Демо-игра"
-    };
-
-    content.innerHTML = `
-        <h2>${names[game]}</h2>
-        <p>Демонстрационная версия</p>
-        <p>Баланс: 🪙 ${balance}</p>
-        <p>Игровой режим скоро будет доступен!</p>
-    `;
+function goBack() {
+    openPage(previousPage);
 }
 
-function goHome() {
-    document.querySelector(".games").style.display = "grid";
-    document.querySelector("main > h2").style.display = "block";
-    document.querySelector(".banner").style.display = "block";
-    document.getElementById("game-screen").style.display = "none";
+const rules = {
+    mines: {
+        title: "Правила — Мины",
+        text: "Здесь будут размещены правила игрового режима, описание поля и условий раунда."
+    },
+
+    upgrade: {
+        title: "Правила — Апгрейд",
+        text: "Здесь будут описаны коллекции предметов, характеристики и условия демонстрации улучшения."
+    },
+
+    blackjack: {
+        title: "Правила — Блэкджек",
+        text: "Здесь будут описаны правила карточной игры и порядок игрового раунда."
+    },
+
+    storm: {
+        title: "Правила — Шторм",
+        text: "Здесь будут описаны правила режима, ход раунда и значение отображаемых показателей."
+    }
+};
+
+function showRules(game) {
+    const data = rules[game];
+
+    if (!data) return;
+
+    document.getElementById("rulesTitle").textContent =
+        data.title;
+
+    document.getElementById("rulesText").textContent =
+        data.text;
+
+    document.getElementById("rulesModal").classList.add("show");
 }
 
-function openTab(tab) {
-    const message = document.getElementById("message");
-    message.style.display = "block";
-    message.textContent = "Раздел: " + tab;
+function closeRules() {
+    document.getElementById("rulesModal").classList.remove("show");
 }
 
-updateBalance();
+document.getElementById("rulesModal").addEventListener(
+    "click",
+    function(event) {
+        if (event.target === this) {
+            closeRules();
+        }
+    }
+);
